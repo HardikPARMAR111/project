@@ -21,6 +21,7 @@ def submit_form():
 root = Tk()
 root.title('Registration Form')
 root.resizable(0,0)
+
 # Create labels and entry fields
 label_first_name = Label(root, text='First Name', fg="blue")
 label_first_name.grid(row=0, column=0, padx=10, pady=5)
@@ -47,9 +48,19 @@ label_phone_number.grid(row=4, column=0, padx=10, pady=5)
 entry_phone_number = Entry(root)
 entry_phone_number.grid(row=4, column=1, padx=10, pady=5)
 
+label_User_name = Label(root, text='User name', fg="blue")
+label_User_name.grid(row=5, column=0, padx=10, pady=5)
+entry_User_name = Entry(root)
+entry_User_name.grid(row=5, column=1, padx=10, pady=5)
+
+label_password = Label(root, text='Password', fg="blue")
+label_password.grid(row=6, column=0, padx=10, pady=5)
+entry_password = Entry(root,show="*")
+entry_password.grid(row=6, column=1, padx=10, pady=5)
+
 # Submit button
 submit_button = Button(root, text='Submit', command=submit_form, width=30, fg="white", bg="blue")
-submit_button.grid(row=5, column=0, columnspan=2, pady=10)
+submit_button.grid(row=7, column=0, columnspan=2, pady=10)
 
 
 # Start the main loop
