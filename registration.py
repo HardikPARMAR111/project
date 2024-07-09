@@ -1,5 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
+from sqlite3 import *
+from datab import sqlcon
+
+sqlcur=sqlcon.cursor()
 
 def submit_form():
     # Retrieve the values from the entry fields
@@ -8,14 +12,19 @@ def submit_form():
     address = entry_address.get()
     email = entry_email.get()
     phone_number = entry_phone_number.get()
+    username=entry_User_name.get()
+    password=entry_password.get()
     
     # Validate if required fields are not empty
-    if first_name == '' or last_name == '' or email == '':
+    if first_name == '' or last_name == '' or email == '' or address=='' or phone_number=='' or username=='' or password=='':
         messagebox.showerror('Error', 'Please fill in all required fields.')
         return
+    else:
+        sqlcur.execute('''insert into reg_table(First_name, Last_name, Address, email, mobile_no, User_Id, Pwd) values (?,?,?,?,?,?,?)''',(first_name,last_name,address,email,phone_number,username,password))
+        sqlcon.commit()
+        messagebox.showinfo('App1',"data entered successfully")
     
-    # Display the submitted information (for demonstration)
-    messagebox.showinfo('Submitted', f'First Name: {first_name}\nLast Name: {last_name}\nAddress: {address}\nEmail: {email}\nPhone Number: {phone_number}')
+    
 
 # Create the main window
 root = Tk()
