@@ -11,6 +11,9 @@ query="""create table reg_table (
         Pwd varchar(8) not null
     );"""
 print("everything is okay")
-
+query="""select * from reg_table"""
+data=cur.execute(query)
+for i in data:
+    print(i)
     
     
