@@ -1,43 +1,51 @@
-from tkinter import *
+from customtkinter import *
 from tkinter import messagebox
-user_credentials = {
-    'user1': 'password1',
-    'user2': 'password2',
-    'user3': 'password3'
-}
-
-def check_credentials():
+import mysql.connector
+# sql code
+mydb=mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="Myproject"
+)
+# Define the function for the login button
+def login():
     username = entry_username.get()
     password = entry_password.get()
     
-    if username in user_credentials and user_credentials[username] == password:
-        messagebox.showinfo("Login Successful", f"Welcome, {username}!")
-    else:
-        messagebox.showerror("Login Failed", "Invalid username or password")
-        entry_password.delete(0, END)  # Clear the password entry field
+    # Perform login validation here
+    if username=="" and password=="":
+        messagebox.showwarning("LMS","please fulfill the details")
+    elif len(password)>=9 or len(password)<=7:
+        messagebox.showwarning("LMS","password must contains 8 letters")
+        entry_password.delete(0,END)
+    
+    
+        
 
-# Create main window
-root = Tk()
-root.title("Login Page")
-root.attributes('-toolwindow',True)
-root.resizable(0,0)
+# Create the main window
+app = CTk()
+app.title("Library Management System")
+app.geometry("600x300")
+app.resizable(0,0)
 
+# Create and place the widgets
+label_title = CTkLabel(app, text="Login", font=("Arial", 24))
+label_title.pack(pady=10)
 
-# Create username label and entry
-label_username = Label(root, text="Username:")
-label_username.grid(row=0,column=0,padx=20,pady=10)
-entry_username = Entry(root)
-entry_username.grid(row=0,column=1,padx=15,pady=10)
+label_username = CTkLabel(app, text="Username:",font=("calibri",15))
+label_username.pack(pady=(10, 5))
+entry_username = CTkEntry(app,placeholder_text="enter the username")
+entry_username.pack(pady=(0, 10), padx=20, fill="x")
 
-# Create password label and entry
-label_password = Label(root, text="Password:")
-label_password.grid(row=1,column=0,padx=20,pady=20)
-entry_password = Entry(root, show='*')
-entry_password.grid(row=1,column=1,padx=15,pady=20)
+label_password = CTkLabel(app, text="Password:",font=("calibri",15))
+label_password.pack(pady=(10, 5))
+entry_password = CTkEntry(app, show="*",placeholder_text="enter the password")
+entry_password.pack(pady=(0, 20), padx=20, fill="x")
 
-# Create login button
-btn_login = Button(root, text="Login", width=10, command=check_credentials)
-btn_login.grid(rowspan=1,columnspan=2)
+button_login = CTkButton(app, text="Login", command=login)
+button_login.pack(pady=10)
 
-# Start the GUI application
-root.mainloop()
+# Run the application
+app.mainloop()
+
