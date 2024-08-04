@@ -1,5 +1,14 @@
 from customtkinter import *
 from tkinter import messagebox
+import mysql.connector
+#sql
+mydb=mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="LMS"
+        )
+mycur=mydb.cursor()
 
 # Function to handle the registration submission
 def register():
@@ -10,6 +19,16 @@ def register():
     email = entry_email.get()
     username = entry_username.get()
     password = entry_password.get()
+    
+    if firstname=="" or lastname=="" or address=="" or mobile_no=="" or email=="" or username=="" or password=="":
+        messagebox.showwarning("LMS","please fulfill all the details")
+    elif len(mobile_no)>=11 or len(mobile_no)<=9:
+        messagebox.showwarning("LMS","mobile no must have 10 letters")
+    elif len(password)>=9 or len(password)<=7:
+        messagebox.showwarning("LMS","password must contain 8 letters")
+    else:
+        messagebox.showinfo("LMS","registration successful")
+        clear_all()
 
     # Perform registration validation and processing here
 def clear_all():
@@ -24,6 +43,7 @@ def clear_all():
 # Create the main window
 app = CTk()
 app.title("Registration Form")
+app.geometry("1024x864")
 
 
 # Create and place the widgets
