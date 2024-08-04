@@ -7,7 +7,7 @@ mydb=mysql.connector.connect(
             host="localhost",
             user="root",
             password="",
-            database="lmsproject"
+            database="LMS"
         )
 mycur=mydb.cursor()
 # Define the function for the login button
