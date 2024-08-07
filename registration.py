@@ -11,6 +11,11 @@ mydb=mysql.connector.connect(
 mycur=mydb.cursor()
 
 # Function to handle the registration submission
+def validate(char):
+    if char=="" or (char.isdigit() and len(char)<=10):
+        return True
+    return False
+    
 def register():
     firstname = entry_firstname.get()
     lastname = entry_lastname.get()
@@ -32,6 +37,9 @@ def register():
         mycur.execute(ins_query,val)
         mydb.commit()
         ins_query_login="INSERT INTO log_in_tbl (username,password) VALUES (%s,%s)"
+        val1=(username,password)
+        mycur.execute(ins_query_login,val1)
+        mydb.commit()
         
         if mycur.rowcount==1:
             messagebox.showinfo("LMS","registration successful")
@@ -76,7 +84,7 @@ entry_address.pack(pady=(0, 10), padx=20, fill="x")
 
 label_mobile_no = CTkLabel(app, text="Mobile No:")
 label_mobile_no.pack(pady=(8, 5))
-entry_mobile_no = CTkEntry(app)
+entry_mobile_no = CTkEntry(app,validate="key",validatecommand=(validate,"%P"))
 entry_mobile_no.pack(pady=(0, 10), padx=20, fill="x")
 
 label_email = CTkLabel(app, text="Email:")
