@@ -6,7 +6,7 @@ mydb=mysql.connector.connect(
             host="localhost",
             user="root",
             password="",
-            database="LMS"
+            database="backup"
         )
 mycur=mydb.cursor()
 
@@ -27,8 +27,17 @@ def register():
     elif len(password)>=9 or len(password)<=7:
         messagebox.showwarning("LMS","password must contain 8 letters")
     else:
-        messagebox.showinfo("LMS","registration successful")
-        clear_all()
+        ins_query=" INSERT INTO reg_table(fname,lname,address,email,mobileno) VALUES (%s,%s,%s,%s,%s)"
+        val=(firstname,lastname,address,email,mobile_no)
+        mycur.execute(ins_query,val)
+        mydb.commit()
+        ins_query_login="INSERT INTO log_in_tbl (username,password) VALUES (%s,%s)"
+        
+        if mycur.rowcount==1:
+            messagebox.showinfo("LMS","registration successful")
+            clear_all()
+        else:
+            messagebox.showerror("LMS","Something wrong")
 
     # Perform registration validation and processing here
 def clear_all():
