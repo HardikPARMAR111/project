@@ -6,7 +6,7 @@ mydb=mysql.connector.connect(
             host="localhost",
             user="root",
             password="",
-            database="backup"
+            database="lms"
         )
 mycur=mydb.cursor()
 
@@ -27,19 +27,16 @@ def register():
     
     if firstname=="" or lastname=="" or address=="" or mobile_no=="" or email=="" or username=="" or password=="":
         messagebox.showwarning("LMS","please fulfill all the details")
-    elif len(mobile_no)>=11 or len(mobile_no)<=9:
+    elif len(mobile_no)!=10:
         messagebox.showwarning("LMS","mobile no must have 10 letters")
     elif len(password)>=9 or len(password)<=7:
         messagebox.showwarning("LMS","password must contain 8 letters")
     else:
-        ins_query=" INSERT INTO reg_table(fname,lname,address,email,mobileno) VALUES (%s,%s,%s,%s,%s)"
-        val=(firstname,lastname,address,email,mobile_no)
+        ins_query=" INSERT INTO reg_table(fname,lname,address,email,mobileno,username,password) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+        val=(firstname,lastname,address,email,mobile_no,username,password)
         mycur.execute(ins_query,val)
         mydb.commit()
-        ins_query_login="INSERT INTO log_in_tbl (username,password) VALUES (%s,%s)"
-        val1=(username,password)
-        mycur.execute(ins_query_login,val1)
-        mydb.commit()
+       
         
         if mycur.rowcount==1:
             messagebox.showinfo("LMS","registration successful")
