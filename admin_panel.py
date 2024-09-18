@@ -1,8 +1,6 @@
 import mysql.connector
 import customtkinter as ctk
-from tkinter import messagebox, ttk
-
-from tkinter import simpledialog
+from tkinter import messagebox, ttk, simpledialog
 
 # Connect to MySQL
 def create_db_connection():
@@ -94,112 +92,50 @@ class LibraryAdminPanel(ctk.CTk):
         frame.pack(fill="both", expand=True)
         
         # Create a Treeview widget
-        self.tree = ttk.Treeview(frame, columns=("Title", "Author", "Genre","Available"), show='headings')
+        self.tree = ttk.Treeview(frame, columns=("ID", "Title", "Author", "Genre", "Available"), show='headings')
+        self.tree.heading("ID", text="ID")
         self.tree.heading("Title", text="Title")
         self.tree.heading("Author", text="Author")
         self.tree.heading("Genre", text="Genre")
         self.tree.heading("Available", text="Available")
         
+        # Set column widths
+        self.tree.column("ID", width=50)
         self.tree.column("Title", width=200)
         self.tree.column("Author", width=150)
         self.tree.column("Genre", width=150)
         self.tree.column("Available", width=100)
-    
+
         # Pack the Treeview and scrollbars
-        self.tree.pack(side="top",fill="both", expand=True)
-       
+        self.tree.pack(side="top", fill="both", expand=True)
         
         # Insert book data into the Treeview
         for book in books:
             availability = "Yes" if book["available"] else "No"
-            self.tree.insert("", "end", values=(book["title"], book["author"], book["genre"],availability))
+            self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["genre"], availability))
         
         books_window.update_idletasks()  # Update the window with the current size and layout
-        window_width = books_window.winfo_reqwidth()
-        window_height = books_window.winfo_reqheight()
-        books_window.geometry(f"{window_width}x{window_height}")
 
-        for col in self.tree["columns"]:
-            self.tree.column(col, width=max(self.tree.column(col, "width"), 100))
+        # Add Delete button
+        delete_button = ctk.CTkButton(books_window, text="Delete Book", command=self.delete_book)
+        delete_button.pack(pady=10)
 
-        update_button = ctk.CTkButton(books_window, text="Update Book", command=self.update_book)
-        update_button.pack(pady=10)
-
-    def update_book(self):
+    def delete_book(self):
         selected_item = self.tree.selection()
         if not selected_item:
-            messagebox.showwarning("Select a Book", "Please select a book to update.")
+            messagebox.showwarning("Select a Book", "Please select a book to delete.")
             return
 
         book_id = self.tree.item(selected_item[0], 'values')[0]  # Get the selected book ID
-        self.open_update_dialog(book_id)
-
-    def open_update_dialog(self, book_id):
-        conn = create_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
-        book = cursor.fetchone()
-        conn.close()
-
-        # Create an update dialog
-        update_dialog = ctk.CTkToplevel(self)
-        update_dialog.title("Update Book")
-
-        # Create a frame for the form
-        form_frame = ctk.CTkFrame(update_dialog)
-        form_frame.pack(padx=20, pady=20, fill="both", expand=True)
-
-        # Create labels and entry widgets for book details
-        ctk.CTkLabel(form_frame, text="Title:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
-        title_entry = ctk.CTkEntry(form_frame)
-        title_entry.insert(0, book["title"])
-        title_entry.grid(row=0, column=1, padx=10, pady=10, sticky="w")
-
-        ctk.CTkLabel(form_frame, text="Author:").grid(row=1, column=0, padx=10, pady=10, sticky="e")
-        author_entry = ctk.CTkEntry(form_frame)
-        author_entry.insert(0, book["author"])
-        author_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
-
-        ctk.CTkLabel(form_frame, text="Year:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
-        year_entry = ctk.CTkEntry(form_frame)
-        year_entry.insert(0, book["year"])
-        year_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
-
-        ctk.CTkLabel(form_frame, text="Genre:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
-        genre_entry = ctk.CTkEntry(form_frame)
-        genre_entry.insert(0, book["genre"])
-        genre_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-
-        ctk.CTkLabel(form_frame, text="Available (Yes/No):").grid(row=4, column=0, padx=10, pady=10, sticky="e")
-        available_entry = ctk.CTkEntry(form_frame)
-        available_entry.insert(0, "Yes" if book["available"] else "No")
-        available_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
-
-        def save_changes():
-            title = title_entry.get()
-            author = author_entry.get()
-            year = year_entry.get()
-            genre = genre_entry.get()
-            available = available_entry.get().strip().lower() == "yes"
-            
-            # Update the book in the database
+        confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this book?")
+        if confirm:
             conn = create_db_connection()
             cursor = conn.cursor()
-            cursor.execute("""
-                UPDATE books
-                SET title = %s, author = %s, year = %s, genre = %s, available = %s
-                WHERE id = %s
-            """, (title, author, year, genre, available, book_id))
+            cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
             conn.commit()
             conn.close()
-
-            # Close the dialog and refresh the Treeview
-            update_dialog.destroy()
             self.refresh_treeview()
 
-        # Add Save button
-        save_button = ctk.CTkButton(form_frame, text="Save Changes", command=save_changes)
-        save_button.grid(row=5, column=1, padx=10, pady=20, sticky="e")
     def refresh_treeview(self):
         # Clear the current entries in the Treeview
         for item in self.tree.get_children():
@@ -214,9 +150,11 @@ class LibraryAdminPanel(ctk.CTk):
 
         for book in books:
             availability = "Yes" if book["available"] else "No"
-            self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["year"], book["genre"], availability))
-
-# Run the application
+            self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["genre"], availability))
+        
+    # Run the application
 if __name__ == "__main__":
     app = LibraryAdminPanel()
     app.mainloop()
+
+       
