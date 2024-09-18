@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 07, 2024 at 06:08 AM
+-- Generation Time: Sep 18, 2024 at 03:38 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -42,15 +42,16 @@ CREATE TABLE `books` (
   `id` int NOT NULL,
   `title` varchar(255) NOT NULL,
   `author` varchar(255) NOT NULL,
-  `genre` varchar(255) NOT NULL
+  `genre` varchar(255) NOT NULL,
+  `available` tinyint(1) NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `books`
 --
 
-INSERT INTO `books` (`id`, `title`, `author`, `genre`) VALUES
-(1, 'fire and blood ', 'george r r martin', 'fiction');
+INSERT INTO `books` (`id`, `title`, `author`, `genre`, `available`) VALUES
+(1, 'fire and blood ', 'george r r martin', 'fiction', 1);
 
 -- --------------------------------------------------------
 
@@ -60,8 +61,8 @@ INSERT INTO `books` (`id`, `title`, `author`, `genre`) VALUES
 
 CREATE TABLE `log_in_tbl` (
   `id` int NOT NULL,
-  `Username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `Password` varchar(8) COLLATE utf8mb4_general_ci NOT NULL
+  `Username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Password` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -79,10 +80,10 @@ INSERT INTO `log_in_tbl` (`id`, `Username`, `Password`) VALUES
 --
 
 CREATE TABLE `reg_table` (
-  `fname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `lname` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `address` varchar(80) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(30) COLLATE utf8mb4_general_ci NOT NULL,
+  `fname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `lname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `address` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `mobileno` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -130,7 +131,7 @@ ALTER TABLE `authors`
 -- AUTO_INCREMENT for table `books`
 --
 ALTER TABLE `books`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `log_in_tbl`
