@@ -62,20 +62,52 @@ class LibraryAdminPanel(ctk.CTk):
         self.view_books_button.pack(pady=10)
 
     def add_book(self):
-        title = simpledialog.askstring("Book Title", "Enter the book title:")
-        author = simpledialog.askstring("Book Author", "Enter the book author:")
-        genre = simpledialog.askstring("Book Genre", "Enter the book genre:")
-        
-        if title and author and genre:
-            conn = create_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO books (title, author, genre) VALUES (%s, %s, %s)", 
-                           (title, author, genre))
-            conn.commit()
-            conn.close()
-            messagebox.showinfo("Success", "Book added successfully")
-        else:
-            messagebox.showwarning("Input Error", "Please fill out all fields")
+    # Create a new Toplevel window for the form
+        form_window = ctk.CTkToplevel(self)
+        form_window.title("Add Book")
+        form_window.geometry("300x250")
+
+        # Create a frame for the form
+        form_frame = ctk.CTkFrame(form_window)
+        form_frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+        # Create entry fields for title, author, and genre
+        title_entry = ctk.CTkEntry(form_frame, placeholder_text="Book Title")
+        title_entry.pack(pady=5)
+
+        author_entry = ctk.CTkEntry(form_frame, placeholder_text="Book Author")
+        author_entry.pack(pady=5)
+
+        genre_entry = ctk.CTkEntry(form_frame, placeholder_text="Book Genre")
+        genre_entry.pack(pady=5)
+
+    # Function to handle form submission
+        def submit_form():
+            title = title_entry.get()
+            author = author_entry.get()
+            genre = genre_entry.get()
+
+            if title and author and genre:
+                try:
+                    conn = create_db_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("INSERT INTO books (title, author, genre) VALUES (%s, %s, %s)", 
+                                (title, author, genre))
+                    conn.commit()
+                    messagebox.showinfo("Success", "Book added successfully")
+                    form_window.destroy()  # Close the form window
+                    self.refresh_treeview()  # Refresh the book list
+                except mysql.connector.Error as err:
+                    messagebox.showerror("Database Error", f"Error: {err}")
+                finally:
+                    conn.close()
+            else:
+                messagebox.showwarning("Input Error", "Please fill out all fields")
+
+
+        # Add a submit button to the form
+        submit_button = ctk.CTkButton(form_frame, text="Add Book", command=submit_form)
+        submit_button.pack(pady=20)
 
     def view_books(self):
         conn = create_db_connection()
@@ -137,7 +169,7 @@ class LibraryAdminPanel(ctk.CTk):
             self.refresh_treeview()
 
     def refresh_treeview(self):
-        # Clear the current entries in the Treeview
+    # Clear the current entries in the Treeview
         for item in self.tree.get_children():
             self.tree.delete(item)
 
@@ -151,10 +183,9 @@ class LibraryAdminPanel(ctk.CTk):
         for book in books:
             availability = "Yes" if book["available"] else "No"
             self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["genre"], availability))
+
         
     # Run the application
 if __name__ == "__main__":
     app = LibraryAdminPanel()
     app.mainloop()
-
-       
