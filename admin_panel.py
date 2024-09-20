@@ -1,6 +1,6 @@
 import mysql.connector
 import customtkinter as ctk
-from tkinter import messagebox, ttk, simpledialog
+from tkinter import messagebox, ttk
 
 # Connect to MySQL
 def create_db_connection():
@@ -40,6 +40,8 @@ class LibraryAdminPanel(ctk.CTk):
         self.login_button = ctk.CTkButton(self.login_frame, text="Login", command=self.login)
         self.login_button.pack(pady=20)
 
+        self.tree = None  # Initialize tree as None
+
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
@@ -62,16 +64,13 @@ class LibraryAdminPanel(ctk.CTk):
         self.view_books_button.pack(pady=10)
 
     def add_book(self):
-    # Create a new Toplevel window for the form
         form_window = ctk.CTkToplevel(self)
         form_window.title("Add Book")
         form_window.geometry("300x250")
 
-        # Create a frame for the form
         form_frame = ctk.CTkFrame(form_window)
         form_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
-        # Create entry fields for title, author, and genre
         title_entry = ctk.CTkEntry(form_frame, placeholder_text="Book Title")
         title_entry.pack(pady=5)
 
@@ -81,7 +80,6 @@ class LibraryAdminPanel(ctk.CTk):
         genre_entry = ctk.CTkEntry(form_frame, placeholder_text="Book Genre")
         genre_entry.pack(pady=5)
 
-    # Function to handle form submission
         def submit_form():
             title = title_entry.get()
             author = author_entry.get()
@@ -92,11 +90,12 @@ class LibraryAdminPanel(ctk.CTk):
                     conn = create_db_connection()
                     cursor = conn.cursor()
                     cursor.execute("INSERT INTO books (title, author, genre) VALUES (%s, %s, %s)", 
-                                (title, author, genre))
+                                   (title, author, genre))
                     conn.commit()
                     messagebox.showinfo("Success", "Book added successfully")
                     form_window.destroy()  # Close the form window
-                    self.refresh_treeview()  # Refresh the book list
+                    if self.tree:  # Check if tree exists before refreshing
+                        self.refresh_treeview()  # Refresh the book list
                 except mysql.connector.Error as err:
                     messagebox.showerror("Database Error", f"Error: {err}")
                 finally:
@@ -104,8 +103,6 @@ class LibraryAdminPanel(ctk.CTk):
             else:
                 messagebox.showwarning("Input Error", "Please fill out all fields")
 
-
-        # Add a submit button to the form
         submit_button = ctk.CTkButton(form_frame, text="Add Book", command=submit_form)
         submit_button.pack(pady=20)
 
@@ -123,7 +120,6 @@ class LibraryAdminPanel(ctk.CTk):
         frame = ctk.CTkFrame(books_window)
         frame.pack(fill="both", expand=True)
         
-        # Create a Treeview widget
         self.tree = ttk.Treeview(frame, columns=("ID", "Title", "Author", "Genre", "Available"), show='headings')
         self.tree.heading("ID", text="ID")
         self.tree.heading("Title", text="Title")
@@ -138,17 +134,12 @@ class LibraryAdminPanel(ctk.CTk):
         self.tree.column("Genre", width=150)
         self.tree.column("Available", width=100)
 
-        # Pack the Treeview and scrollbars
         self.tree.pack(side="top", fill="both", expand=True)
-        
-        # Insert book data into the Treeview
+
         for book in books:
             availability = "Yes" if book["available"] else "No"
             self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["genre"], availability))
         
-        books_window.update_idletasks()  # Update the window with the current size and layout
-
-        # Add Delete button
         delete_button = ctk.CTkButton(books_window, text="Delete Book", command=self.delete_book)
         delete_button.pack(pady=10)
 
@@ -161,31 +152,41 @@ class LibraryAdminPanel(ctk.CTk):
         book_id = self.tree.item(selected_item[0], 'values')[0]  # Get the selected book ID
         confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this book?")
         if confirm:
-            conn = create_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
-            conn.commit()
-            conn.close()
+            try:
+                conn = create_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
+                conn.commit()
+                messagebox.showinfo("Success", "Book deleted successfully.")
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+            finally:
+                conn.close()
             self.refresh_treeview()
 
     def refresh_treeview(self):
-    # Clear the current entries in the Treeview
+        if self.tree is None:  # Ensure treeview exists
+            return
+
+        # Clear the current entries in the Treeview
         for item in self.tree.get_children():
             self.tree.delete(item)
 
         # Reload books data and update Treeview
-        conn = create_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM books")
-        books = cursor.fetchall()
-        conn.close()
+        try:
+            conn = create_db_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM books")
+            books = cursor.fetchall()
+            conn.close()
 
-        for book in books:
-            availability = "Yes" if book["available"] else "No"
-            self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["genre"], availability))
+            for book in books:
+                availability = "Yes" if book["available"] else "No"
+                self.tree.insert("", "end", values=(book["id"], book["title"], book["author"], book["genre"], availability))
+        except mysql.connector.Error as err:
+            messagebox.showerror("Database Error", f"Error: {err}")
 
-        
-    # Run the application
+# Run the application
 if __name__ == "__main__":
     app = LibraryAdminPanel()
     app.mainloop()
