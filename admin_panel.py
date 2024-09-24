@@ -211,12 +211,14 @@ class LibraryAdminPanel(ctk.CTk):
                         form_window.destroy()
                 except mysql.connector.Error as err:
                     messagebox.showerror("Database Error", f"Error: {err}")
+                self.refresh_books_treeview()
+                    
             else:
                 messagebox.showwarning("Input Error", "Please fill out all fields")
 
         submit_button = ctk.CTkButton(form_frame, text="Update Book", command=submit_update)
         submit_button.pack(pady=20)
-
+        
 
     def refresh_books_treeview(self):
         if self.tree_books is None:
@@ -303,8 +305,9 @@ class LibraryAdminPanel(ctk.CTk):
 
         frame = ctk.CTkFrame(members_window)
         frame.pack(fill="both", expand=True)
-        
-        self.tree_members = ttk.Treeview(frame, columns=("ID", "First Name", "Last Name", "Address", "Mobile No", "Email", "Username"), show='headings')
+
+        # Create Treeview with password field
+        self.tree_members = ttk.Treeview(frame, columns=("ID", "First Name", "Last Name", "Address", "Mobile No", "Email", "Username", "Password"), show='headings')
         self.tree_members.heading("ID", text="ID")
         self.tree_members.heading("First Name", text="First Name")
         self.tree_members.heading("Last Name", text="Last Name")
@@ -312,7 +315,8 @@ class LibraryAdminPanel(ctk.CTk):
         self.tree_members.heading("Mobile No", text="Mobile No")
         self.tree_members.heading("Email", text="Email")
         self.tree_members.heading("Username", text="Username")
-        
+        self.tree_members.heading("Password", text="Password")  # Add heading for Password
+
         # Set column widths
         self.tree_members.column("ID", width=50)
         self.tree_members.column("First Name", width=100)
@@ -321,11 +325,18 @@ class LibraryAdminPanel(ctk.CTk):
         self.tree_members.column("Mobile No", width=100)
         self.tree_members.column("Email", width=150)
         self.tree_members.column("Username", width=100)
+        self.tree_members.column("Password", width=100)  # Set width for Password
 
-        self.tree_members.pack(side="top", fill="both", expand=True)
+        # Create a scrollbar
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.tree_members.yview)
+        self.tree_members.configure(yscroll=scrollbar.set)
+
+        # Pack the Treeview and scrollbar
+        self.tree_members.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
         for member in members:
-            self.tree_members.insert("", "end", values=(member["id"], member["first_name"], member["last_name"], member["address"], member["mobile_no"], member["email"], member["username"]))
+            self.tree_members.insert("", "end", values=(member["id"], member["first_name"], member["last_name"], member["address"], member["mobile_no"], member["email"], member["username"], member["password"]))
         
         delete_button = ctk.CTkButton(members_window, text="Delete Member", command=self.delete_member)
         delete_button.pack(pady=10)
