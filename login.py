@@ -15,6 +15,76 @@ def connect_to_database():
         messagebox.showerror("Database Error", f"Error: {err}")
         return None
 
+# Function to fetch user profile information
+def fetch_user_profile(user_id):
+    db = connect_to_database()
+    if db:
+        mycur = db.cursor()
+        mycur.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+        profile = mycur.fetchone()
+        mycur.close()
+        db.close()
+        return profile
+    return None
+
+# Function to display user profile
+def show_user_profile(user_id):
+    profile = fetch_user_profile(user_id)
+    if profile:
+        profile_window = ctk.CTkToplevel()  # Create a new window
+        profile_window.title("User Profile")
+        profile_window.geometry("400x300")
+
+        label_title = ctk.CTkLabel(profile_window, text="User Profile", font=("Arial", 24))
+        label_title.pack(pady=20)
+
+        for i, info in enumerate(profile):
+            label_info = ctk.CTkLabel(profile_window, text=f"Field {i}: {info}")
+            label_info.pack(pady=5)
+
+        ctk.CTkButton(profile_window, text="Close", command=profile_window.destroy).pack(pady=10)
+
+# Function to fetch and display user's added books
+def show_my_books(user_id):
+    my_books_window = ctk.CTkToplevel()  # Create a new window
+    my_books_window.title("My Books")
+    my_books_window.geometry("600x400")
+
+    label_title = ctk.CTkLabel(my_books_window, text="My Books", font=("Arial", 24))
+    label_title.pack(pady=20)
+
+    # Create Treeview to display user's books
+    tree = ttk.Treeview(my_books_window, columns=("ID", "Title", "Author", "Genre"), show='headings')
+    tree.heading("ID", text="ID")
+    tree.heading("Title", text="Title")
+    tree.heading("Author", text="Author")
+    tree.heading("Genre", text="Genre")
+
+    # Set column widths
+    tree.column("ID", width=50)
+    tree.column("Title", width=200)
+    tree.column("Author", width=150)
+    tree.column("Genre", width=100)
+
+    # Add a scrollbar
+    scrollbar = ttk.Scrollbar(my_books_window, orient="vertical", command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+    tree.pack(side="left", fill="both", expand=True)
+
+    # Fetch and display books from the user's collection
+    db = connect_to_database()
+    if db:
+        mycur = db.cursor()
+        mycur.execute("SELECT b.id, b.title, b.author, b.genre FROM user_collections uc JOIN books b ON uc.book_id = b.id WHERE uc.user_id = %s", (user_id,))
+        books = mycur.fetchall()
+
+        for book in books:
+            tree.insert("", "end", values=book)
+
+        mycur.close()
+        db.close()
+
 # Function to create and display the home page
 def open_home_page(user_id):
     home_app = ctk.CTk()  # Create a new instance for the home page
@@ -24,9 +94,18 @@ def open_home_page(user_id):
     label_title = ctk.CTkLabel(home_app, text="Books List", font=("Arial", 24))
     label_title.pack(pady=20)
 
-    # Create a frame for the treeview
+    # Create a frame for the buttons and treeview
     frame = ctk.CTkFrame(home_app)
     frame.pack(fill="both", expand=True)
+
+    # Create a frame for buttons on the left
+    button_frame = ctk.CTkFrame(frame)
+    button_frame.pack(side="left", padx=10, pady=10)
+
+    # Create buttons for user profile, my books, and add to collection
+    ctk.CTkButton(button_frame, text="User Profile", command=lambda: show_user_profile(user_id)).pack(pady=5)
+    ctk.CTkButton(button_frame, text="My Books", command=lambda: show_my_books(user_id)).pack(pady=5)
+    ctk.CTkButton(button_frame, text="Add to Collection", command=lambda: add_to_collection(user_id)).pack(pady=5)
 
     # Create Treeview to display books
     tree = ttk.Treeview(frame, columns=("ID", "Title", "Author", "Genre", "Available"), show='headings')
@@ -63,13 +142,18 @@ def open_home_page(user_id):
         db.close()
 
     # Button to add selected book to collection
-    def add_to_collection():
+    def add_to_collection(user_id):
         selected_item = tree.selection()
         if not selected_item:
             messagebox.showwarning("Selection Error", "Please select a book to add to your collection.")
             return
         
         book_id = tree.item(selected_item)["values"][0]  # Get the selected book ID
+        book_available = tree.item(selected_item)["values"][4]  # Get the availability status
+
+        if book_available == 'No':
+            messagebox.showwarning("Availability Error", "This book is not available.")
+            return
 
         # Add the book to user's collection
         db = connect_to_database()
@@ -82,10 +166,8 @@ def open_home_page(user_id):
             messagebox.showinfo("Success", "Book added to your collection.")
             mycur.close()
             db.close()
-
-    ctk.CTkButton(home_app, text="Add to Collection", command=add_to_collection).pack(pady=10)
-
-    home_app.mainloop()  # Start the home page application
+ # Start the home page application
+    home_app.mainloop()
 
 # Function for login
 def login():
@@ -148,3 +230,4 @@ ctk.CTkButton(app, text="Login", command=login).pack(pady=10)
 
 # Run the application
 app.mainloop()
+
