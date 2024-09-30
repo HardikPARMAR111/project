@@ -230,4 +230,3 @@ ctk.CTkButton(app, text="Login", command=login).pack(pady=10)
 
 # Run the application
 app.mainloop()
-
